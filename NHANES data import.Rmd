@@ -1,0 +1,94 @@
+---
+title: "NHANES Import"
+author: "Gaea Daniel"
+date: "9/6/2017"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(RNHANES)
+library(tidyverse)
+#import oral hpv data
+hpvo_data <- nhanes_load_data("ORHPV_H", "2013-2014", demographics = TRUE)
+#import vaginal hpv data
+hpvv_data <- nhanes_load_data("HPVSWR_H", "2013-2014", demographics = TRUE)
+#import penile hpv data
+hpvp_data <- nhanes_load_data("HPVP_H", "2013-2014", demographics = TRUE)
+#import sexual behavior (Questionnaire) data
+sex_data <- nhanes_load_data("SXQ", "2013-2014", demographics = TRUE)
+```
+
+```{r}
+nhanes_data_files(components = "all", destination = tempfile(),
+  cache = TRUE)
+```
+
+```{r}
+nhanes_load_data("GHB", "2013-2014", destination = tempdir(),
+  demographics = TRUE, cache = TRUE, recode = TRUE,
+  recode_data = FALSE, recode_demographics = FALSE,
+  allow_duplicate_files = FALSE)
+```
+
+```{r}
+nhanes_load_data("SXQ_H", "2013-2014", destination = tempdir(),
+  demographics = TRUE, cache = TRUE, recode = FALSE,
+  recode_data = FALSE, recode_demographics = FALSE,
+  allow_duplicate_files = FALSE)
+```
+
+```{r}
+#datasets with demographics for sexual behavior questions and oral, vaginal, and penile HPV lab data
+nhanes_load_data(c("SXQ", "ORHPV_H", "HPVSWR_H", "HPVP_H"), "2013-2014", destination = tempdir(),
+  demographics = TRUE, cache = TRUE, recode = FALSE,
+  recode_data = FALSE, recode_demographics = FALSE,
+  allow_duplicate_files = FALSE)
+```
+
+```{r}
+#combine hpvo and hpvp datasets => hpvm
+#observations in hpvp not in hpvo excluded
+left_join(hpvo_data, hpvp_data, by = "SEQN")
+```
+
+```{r}
+#combine hpvo and hpvp datasets => hpvm
+#observations in hpv not in hpvp excluded
+right_join(hpvo_data, hpvp_data, by = "SEQN")
+```
+
+```{r}
+#combine hpvo and hpvv datasets => hpvw
+#observations in hpv not in hpvv excluded
+right_join(hpvo_data, hpvv_data, by = "SEQN")
+```
+
+```{r}
+#combine hpvo and hpvp datasets => hpvm
+#observations in hpv not in hpvp excluded
+right_join(hpvo_data, hpvp_data, by = "SEQN")
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
